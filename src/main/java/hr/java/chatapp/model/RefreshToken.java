@@ -24,8 +24,8 @@ public class RefreshToken {
     private String token;
     @Field("expiry_date")
     private Instant expiryDate;
-    @DBRef
-    private UserInfo user;
+    @Field("user_id")
+    private String userId;
 }
 
 

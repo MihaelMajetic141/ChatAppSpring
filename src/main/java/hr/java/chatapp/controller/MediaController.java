@@ -1,6 +1,5 @@
 package hr.java.chatapp.controller;
 
-import hr.java.chatapp.model.Conversation;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.gridfs.GridFsResource;

@@ -10,40 +10,46 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
-import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.*;
 
 @Document(collection = "users")
-@CompoundIndexes({
-        @CompoundIndex(name = "username_index", def = "{'username': 1}", unique = true),
-        @CompoundIndex(name = "email_index", def = "{'email': 1}", unique = true)
-})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class UserInfo {
     @Id
+    @Indexed(unique = true)
     private String id;
-    @NotBlank
-    @Size(max = 20)
+
+    @Indexed(unique = true)
     private String username;
-    @NotBlank
-    @Size(max = 50)
-    @Email
+
+    @Indexed(unique = true)
     private String email;
-    @Size(max = 120)
+
     private String password;
+
     @Field("profile_picture")
-    private String pictureFileId;
+    private String imageFileId;
+
     private String status = "";
+
     private Set<String> roles = new HashSet<>();
+
+    @Field("last_online")
     private Date lastOnline;
+
+    @Field("is_online")
     private boolean isOnline;
+
+    @Field("contact_ids")
     private List<String> contactIds = new ArrayList<>();
+
 }
 
 

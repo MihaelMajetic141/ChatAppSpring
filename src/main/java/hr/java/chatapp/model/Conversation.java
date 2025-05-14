@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.*;
 
@@ -25,21 +26,26 @@ public class Conversation {
     @NotBlank
     private String name;
 
-    private String description;
+    private String description = "";
 
+    @Field("image_file_id")
     private String imageFileId;
 
+    @Field("is_direct_message")
     @NotNull
     private boolean isDirectMessage;
 
+    @Field("invite_link")
     @Indexed(unique = true)
     private String inviteLink;
 
-    // ToDo: Check if @NotEmpty
-    private List<String> adminIds = new ArrayList<>();
-
+    @Field("admin_ids")
     @NotEmpty
-    private List<String> memberIds = new ArrayList<>();
+    private Set<String> adminIds = new HashSet<>();
+
+    @Field("member_ids")
+    @NotEmpty
+    private Set<String> memberIds = new HashSet<>();
 
     private Date createdAt;
 }

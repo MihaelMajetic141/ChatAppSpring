@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 
@@ -23,8 +24,16 @@ import java.util.Date;
 public class ReadStatus {
     @Id
     private String id;
+
+    @Field("user_id")
     private String userId;
+
+    @Field("conversation_id")
     private String conversationId;
+
+    @Field("last_read_message_id")
     private String lastReadMessageId;
+
+    @Field("last_updated")
     private Date lastUpdated;
 }

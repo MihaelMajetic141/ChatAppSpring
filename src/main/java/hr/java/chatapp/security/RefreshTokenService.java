@@ -31,7 +31,7 @@ public class RefreshTokenService {
             refreshToken.setExpiryDate(Instant.now().plusMillis(1000L * 60 * 60 * 24 * 7));
         } else {
             refreshToken = RefreshToken.builder()
-                    .user(userInfo.get())
+                    .userId(userInfo.get().getId())
                     .token(UUID.randomUUID().toString())
                     .expiryDate(Instant.now().plusMillis(1000L * 60 * 60 * 24 * 7))
                     .build();

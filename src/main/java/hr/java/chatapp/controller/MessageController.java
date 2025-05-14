@@ -23,7 +23,7 @@ public class MessageController {
     private GridFsTemplate gridFsTemplate;
 
     @GetMapping("/get")
-    public ResponseEntity<List<Message>> getConversation(
+    public ResponseEntity<List<Message>> getMessagesByConversationId(
             @RequestParam String conversationId
     ) {
         List<Message> messages = messageService.getAllMessages(conversationId);

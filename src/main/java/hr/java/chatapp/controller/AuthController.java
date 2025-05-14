@@ -73,7 +73,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(
+    public ResponseEntity<?> login(
             @Valid @RequestBody LoginRequest loginRequest
     ) {
         Optional<UserInfo> user = userInfoRepository.findByUsername(loginRequest.getUsername());
@@ -87,14 +87,14 @@ public class AuthController {
 
         if (authentication.isAuthenticated()) {
             UserInfoDTO userDTO = UserInfoDTO.builder()
+                    .id(user.get().getId())
                     .username(user.get().getUsername())
                     .email(user.get().getEmail())
-                    .pictureFileId(user.get().getPictureFileId())
+                    .imageFileId(user.get().getImageFileId())
                     .build();
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.get().getEmail());
             JwtResponse jwtResponse = JwtResponse.builder()
                     .accessToken(jwtService.generateToken(userDTO.getEmail()))
-                    .refreshToken(refreshToken.getToken())
+                    .refreshToken(refreshTokenService.createRefreshToken(user.get().getEmail()).getToken())
                     .build();
             return ResponseEntity.ok().body(
                     AuthResponse.builder()
@@ -133,7 +133,7 @@ public class AuthController {
                     .email(existingUser.get().getEmail())
                     .password(existingUser.get().getPassword())
                     .roles(existingUser.get().getRoles())
-                    .pictureFileId(pictureUrl)
+                    .imageFileId(pictureUrl)
                     .build();
             user = userInfoRepository.save(oldUser);
         } else {
@@ -142,20 +142,20 @@ public class AuthController {
                     .email(userEmail)
                     .password("")
                     .roles(basicRoleSet)
-                    .pictureFileId(pictureUrl)
+                    .imageFileId(pictureUrl)
                     .build();
             user = userInfoRepository.save(newUser);
         }
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userEmail);
         JwtResponse jwtResponse = JwtResponse.builder()
                 .accessToken(jwtService.generateToken(userEmail))
-                .refreshToken(refreshToken.getToken())
+                .refreshToken(refreshTokenService.createRefreshToken(userEmail).getToken())
                 .build();
         UserInfoDTO userInfoDTO = UserInfoDTO.builder()
+                .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .pictureFileId(user.getPictureFileId())
+                .imageFileId(user.getImageFileId())
                 .build();
 
         return ResponseEntity.ok().body(
@@ -166,7 +166,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(
+    public ResponseEntity<?> logout(
             @RequestBody String refreshToken
     ) {
         Optional<RefreshToken> deletedRefreshToken = refreshTokenService.deleteRefreshToken(refreshToken);
@@ -178,16 +178,19 @@ public class AuthController {
     }
 
     @PostMapping("/refreshToken")
-    public JwtResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest){
+    public JwtResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
         return refreshTokenService.findByToken(refreshTokenRequest.getToken())
                 .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
+                .map(refreshToken -> userInfoRepository.findById(refreshToken.getUserId())
+                        .orElseThrow(() -> new RuntimeException("User not found!")))
                 .map(userInfo -> {
                     String accessToken = jwtService.generateToken(userInfo.getEmail());
                     return JwtResponse.builder()
                             .accessToken(accessToken)
-                            .refreshToken(refreshTokenRequest.getToken()).build();
-                }).orElseThrow(() -> new RuntimeException("Refresh Token is not in database!"));
+                            .refreshToken(refreshTokenRequest.getToken())
+                            .build();
+                })
+                .orElseThrow(() -> new RuntimeException("Refresh Token is not in database!"));
     }
 
 }

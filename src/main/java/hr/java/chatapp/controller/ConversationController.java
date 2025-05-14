@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/conversations")
@@ -36,7 +35,7 @@ public class ConversationController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<ConversationDTO>> getAllConversationDTOs(
+    public ResponseEntity<List<ConversationDTO>> getAllConversationDTOsByUserId(
         @PathVariable String userId
     ) {
         return ResponseEntity.ok(
@@ -44,7 +43,7 @@ public class ConversationController {
         );
     }
 
-    @GetMapping("/getImage}")
+    @GetMapping("/getImage")
     public ResponseEntity<GridFsResource> getConversationImage(
             @RequestParam String conversationId,
             @RequestParam String userId

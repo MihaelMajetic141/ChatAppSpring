@@ -4,11 +4,10 @@ package hr.java.chatapp.service;
 import hr.java.chatapp.model.UserInfo;
 import hr.java.chatapp.model.dto.ContactDTO;
 import hr.java.chatapp.repository.UserInfoRepository;
-import org.apache.catalina.User;
+import hr.java.chatapp.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,66 +16,63 @@ public class ContactsService {
 
     @Autowired
     private UserInfoRepository userInfoRepository;
+    @Autowired
+    private JwtService jwtService;
 
-    public ContactDTO addNewContact(String contactId, String currentUserId) {
+    public ContactDTO addNewContact(String newContactId, String currentUserId) {
         Optional<UserInfo> currentUser = userInfoRepository.findById(currentUserId);
-        Optional<UserInfo> contactUser = userInfoRepository.findById(contactId);
+        Optional<UserInfo> contactUser = userInfoRepository.findById(newContactId);
 
         if (currentUser.isPresent() && contactUser.isPresent()) {
             List<String> contactList = currentUser.get().getContactIds();
-            contactList.add(contactId);
+            contactList.add(newContactId);
             currentUser.get().setContactIds(contactList);
 
-            return ContactDTO.builder()
-                    .userInfoId(currentUser.get().getId())
-                    .email(currentUser.get().getEmail())
-                    .username(currentUser.get().getUsername())
-                    .imageFileId(currentUser.get().getPictureFileId())
-                    .status(currentUser.get().getStatus())
-                    .build();
+            return userInfoToContactDTO(currentUser.get());
         }
         else return null;
     }
 
-    // ToDo: Check if currentUser's contacts are valid. Somewhere else.
-    public List<ContactDTO> getContacts(String contactId) {
-        Optional<UserInfo> currentUser = userInfoRepository.findById(contactId);
+    public List<ContactDTO> getContacts(String currentUserId) {
+        Optional<UserInfo> currentUser = userInfoRepository.findById(currentUserId);
         if (currentUser.isEmpty()) return null;
 
-        List<ContactDTO> contactDTOList = new ArrayList<>();
         List<String> contactIdList = currentUser.get().getContactIds();
+
+        // ToDo: Check if currentUser's contacts are valid.
         List<UserInfo> contactList = contactIdList.stream()
-                .map(id -> userInfoRepository.findById(id).orElse(null)).toList();
+                .map(id -> userInfoRepository.findById(id).orElse(null))
+                .toList();
 
-        contactList.stream()
-            .map(userInfo ->
-                ContactDTO.builder()
-                    .userInfoId(userInfo.getId())
-                    .email(userInfo.getEmail())
-                    .username(userInfo.getUsername())
-                    .imageFileId(userInfo.getPictureFileId())
-                    .status(userInfo.getStatus())
-                    .build()
-            ).forEach(contactDTOList::add);
-
-        return contactDTOList;
+        return contactList.stream()
+            .map(this::userInfoToContactDTO).toList();
     }
 
     public List<ContactDTO> getAll() {
-        List<ContactDTO> contactDTOList = new ArrayList<>();
-        userInfoRepository.findAll().stream()
-                .map(userInfo ->
-                        ContactDTO.builder()
-                                .userInfoId(userInfo.getId())
-                                .email(userInfo.getEmail())
-                                .username(userInfo.getUsername())
-                                .imageFileId(userInfo.getPictureFileId())
-                                .status(userInfo.getStatus())
-                                .build()
-                )
-                .forEach(contactDTOList::add);
-        return contactDTOList;
+        return userInfoRepository.findAll().stream()
+                .map(this::userInfoToContactDTO)
+                .toList();
     }
 
+    public ContactDTO getByEmail(String email) {
+        Optional<UserInfo> currentUser = userInfoRepository.findByEmail(email);
+        return currentUser.map(this::userInfoToContactDTO).orElse(null);
+    }
 
+    private ContactDTO userInfoToContactDTO(UserInfo userInfo) {
+        return ContactDTO.builder()
+                .userInfoId(userInfo.getId())
+                .username(userInfo.getUsername())
+                .email(userInfo.getEmail())
+                .imageFileId(userInfo.getImageFileId())
+                .status(userInfo.getStatus())
+                .build();
+    }
+
+    public boolean authenticateJwtHeader(String username, String token) {
+        String jwt = token.substring(7);
+        String email = jwtService.extractEmail(jwt);
+        Optional<UserInfo> user = userInfoRepository.findByEmail(email);
+        return user.isPresent() && user.get().getUsername().equals(username);
+    }
 }

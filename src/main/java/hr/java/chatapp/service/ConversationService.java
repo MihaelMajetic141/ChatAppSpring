@@ -9,10 +9,7 @@ import hr.java.chatapp.repository.ConversationRepository;
 import hr.java.chatapp.repository.MessageRepository;
 import hr.java.chatapp.repository.UserInfoRepository;
 import jakarta.validation.constraints.NotNull;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +44,7 @@ public class ConversationService {
                 return null;
             }
             UserInfo otherUser = otherUserOpt.get();
-            conversation.setImageFileId(otherUser.getPictureFileId());
+            conversation.setImageFileId(otherUser.getImageFileId());
         }
         return conversation;
     }
@@ -62,7 +59,7 @@ public class ConversationService {
         String displayName;
         String displayImageFileId;
         if (conversation.isDirectMessage()) {
-            List<String> memberIds = conversation.getMemberIds();
+            Set<String> memberIds = conversation.getMemberIds();
             if (!memberIds.contains(currentUserId)) {
                 throw new IllegalStateException("Current user ID is not in member list");
             }
@@ -76,7 +73,7 @@ public class ConversationService {
             userInfoOpt = userInfoRepository.findById(otherUserId);
             if (userInfoOpt.isPresent()) {
                 displayName = userInfoOpt.get().getUsername();
-                displayImageFileId = userInfoOpt.get().getPictureFileId();
+                displayImageFileId = userInfoOpt.get().getImageFileId();
             } else {
                 displayName = "Unknown User";
                 displayImageFileId = "";
@@ -147,7 +144,7 @@ public class ConversationService {
     ) {
         Optional<Conversation> existingConversation = getDirectConversationByUserIds(senderId, receiverId);
         if (existingConversation.isPresent()) { return existingConversation.get(); }
-        List<String> memberIds = new ArrayList<>();
+        Set<String> memberIds = new HashSet<>();
         memberIds.add(senderId);
         memberIds.add(receiverId);
         Conversation newConversation = Conversation.builder()
