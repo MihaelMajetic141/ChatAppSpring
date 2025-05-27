@@ -1,5 +1,7 @@
 package hr.java.chatapp.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import hr.java.chatapp.model.RefreshToken;
 import hr.java.chatapp.model.UserInfo;
@@ -25,10 +27,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 
 @RestController
 @CrossOrigin(maxAge = 3600)
@@ -91,16 +91,19 @@ public class AuthController {
                     .username(user.get().getUsername())
                     .email(user.get().getEmail())
                     .imageFileId(user.get().getImageFileId())
+                    .isOnline(true)
+                    .lastOnline(user.get().getLastOnline())
+                    .contactIds(user.get().getContactIds())
                     .build();
             JwtResponse jwtResponse = JwtResponse.builder()
                     .accessToken(jwtService.generateToken(userDTO.getEmail()))
                     .refreshToken(refreshTokenService.createRefreshToken(user.get().getEmail()).getToken())
                     .build();
-            return ResponseEntity.ok().body(
-                    AuthResponse.builder()
-                            .jwtResponse(jwtResponse)
-                            .userInfo(userDTO)
-                            .build());
+            AuthResponse authResponse = AuthResponse.builder()
+                    .jwtResponse(jwtResponse)
+                    .userInfo(userDTO)
+                    .build();
+            return ResponseEntity.ok().body(authResponse);
         } else {
             throw new UsernameNotFoundException("Invalid user request!");
         }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/contacts")
@@ -17,15 +18,22 @@ public class ContactsController {
     private ContactsService contactsService;
 
     @GetMapping("/get")
-    public ResponseEntity<List<ContactDTO>> getContactDTO(
+    public ResponseEntity<List<ContactDTO>> getUserContacts(
             @RequestParam String userId
     ) {
         return ResponseEntity.ok(contactsService.getContacts(userId));
     }
 
+    // ToDo: Might become unnecessary
     @GetMapping("/get_all")
-    public ResponseEntity<List<ContactDTO>> getAllUsers() {
-        return ResponseEntity.ok(contactsService.getAll());
+    public ResponseEntity<?> getAllUsers(
+            @RequestHeader("Authorization") String token
+    ) {
+        try {
+            return ResponseEntity.ok(contactsService.getAll());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(e.getMessage());
+        }
     }
 
     @GetMapping("get_by_email")

@@ -44,7 +44,6 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    // ToDo: update deprecated methods
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith((SecretKey) getSignKey())

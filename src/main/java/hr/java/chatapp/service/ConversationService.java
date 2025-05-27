@@ -133,7 +133,7 @@ public class ConversationService {
                 .inviteLink(generateUniqueInviteLink())
                 .adminIds(conversation.getAdminIds())
                 .memberIds(conversation.getMemberIds())
-                .createdAt(Date.from(Instant.now()))
+                .createdAt(conversation.getCreatedAt())
                 .build();
         return conversationRepository.save(group);
     }

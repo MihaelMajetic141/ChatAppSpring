@@ -20,18 +20,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @AllArgsConstructor
 public class SecurityConfiguration {
+
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(AbstractHttpConfigurer::disable)
             .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .exceptionHandling(exception ->
+                exception.authenticationEntryPoint(restAuthenticationEntryPoint)
+            )
             .authorizeHttpRequests(auth ->
                 auth.requestMatchers("/api/test/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/chat/**").permitAll()
-                    .anyRequest().permitAll())
+                    .requestMatchers("/api/chat/**").authenticated()
+                    .anyRequest().authenticated())
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
