@@ -101,7 +101,7 @@ public class ConversationService {
         List<Conversation> conversations = conversationsOpt.get();
         List<ConversationDTO> conversationDTOList = new ArrayList<>();
         conversations.forEach(
-            conversation -> {
+                conversation -> {
                 ConversationDTO conversationDTO = getConversationDto(conversation.getId(), userId);
                 conversationDTOList.add(conversationDTO);
             }
@@ -150,7 +150,7 @@ public class ConversationService {
         Conversation newConversation = Conversation.builder()
                 .isDirectMessage(true)
                 .memberIds(memberIds)
-                .createdAt(new Date())
+                .createdAt(Date.from(Instant.now()))
                 .build();
         return conversationRepository.save(newConversation);
     }

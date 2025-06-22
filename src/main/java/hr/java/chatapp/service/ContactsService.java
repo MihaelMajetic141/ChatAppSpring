@@ -27,10 +27,27 @@ public class ContactsService {
             List<String> contactList = currentUser.get().getContactIds();
             contactList.add(newContactId);
             currentUser.get().setContactIds(contactList);
+            userInfoRepository.save(currentUser.get());
 
-            return userInfoToContactDTO(currentUser.get());
+            return userInfoToContactDTO(contactUser.get());
         }
         else return null;
+    }
+
+    public List<String> addNewContacts(List<String> contactIdList, String currentUserId) {
+        Optional<UserInfo> currentUser = userInfoRepository.findById(currentUserId);
+        if (currentUser.isEmpty()) return null;
+
+        List<String> currentUserContacts = currentUser.get().getContactIds();
+        contactIdList.forEach(contactId -> {
+            Optional<UserInfo> contactUser = userInfoRepository.findById(contactId);
+            if (contactUser.isPresent()) {
+                currentUserContacts.add(contactId);
+                userInfoRepository.save(currentUser.get());
+            }
+        });
+
+        return currentUserContacts;
     }
 
     public List<ContactDTO> getContacts(String currentUserId) {
@@ -56,6 +73,11 @@ public class ContactsService {
 
     public ContactDTO getByEmail(String email) {
         Optional<UserInfo> currentUser = userInfoRepository.findByEmail(email);
+        return currentUser.map(this::userInfoToContactDTO).orElse(null);
+    }
+
+    public ContactDTO getByUserId(String userId) {
+        Optional<UserInfo> currentUser = userInfoRepository.findById(userId);
         return currentUser.map(this::userInfoToContactDTO).orElse(null);
     }
 

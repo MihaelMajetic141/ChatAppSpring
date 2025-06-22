@@ -36,10 +36,10 @@ public class ContactsController {
         }
     }
 
-    @GetMapping("get_by_email")
+    @GetMapping("/email/{email}")
     public ResponseEntity<?> getContactByEmail(
             // @RequestHeader("Authorization") String token,
-            @RequestParam String email
+            @PathVariable String email
     ) {
         try {
 //            if (!userInfoService.authenticateJwtHeader(username, token)) {
@@ -51,12 +51,27 @@ public class ContactsController {
         }
     }
 
+    @GetMapping("/id/{userId}")
+    public ResponseEntity<?> getContactById(
+            @PathVariable String userId
+    ) {
+        return ResponseEntity.ok(contactsService.getByUserId(userId));
+    }
+
     @PostMapping("/new/{contactId}")
     public ResponseEntity<ContactDTO> newContact(
             @PathVariable String contactId,
             @RequestParam String currentUserId
     ) {
         return ResponseEntity.ok(contactsService.addNewContact(contactId, currentUserId));
+    }
+
+    @PostMapping("/new")
+    public ResponseEntity<List<String>> newContacts(
+            @RequestParam String currentUserId,
+            @RequestBody List<String> contactIdList
+    ) {
+        return ResponseEntity.ok(contactsService.addNewContacts(contactIdList, currentUserId));
     }
 
 
