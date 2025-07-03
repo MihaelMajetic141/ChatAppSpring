@@ -32,15 +32,12 @@ public class Conversation {
     private String imageFileId;
 
     @Field("is_direct_message")
-    @NotNull
     private boolean isDirectMessage;
 
     @Field("invite_link")
-    @Indexed(unique = true)
-    private String inviteLink;
+    private String inviteLink = "";
 
     @Field("admin_ids")
-    @NotEmpty
     private Set<String> adminIds = new HashSet<>();
 
     @Field("member_ids")

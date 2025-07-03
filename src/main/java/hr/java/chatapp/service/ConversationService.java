@@ -44,7 +44,7 @@ public class ConversationService {
                 return null;
             }
             UserInfo otherUser = otherUserOpt.get();
-            conversation.setImageFileId(otherUser.getImageFileId());
+            // conversation.setImageFileId(otherUser.getImageFileId()); // What if empty?
         }
         return conversation;
     }
@@ -83,11 +83,18 @@ public class ConversationService {
             displayName = conversation.getName();
             displayImageFileId = conversation.getImageFileId();
         }
-        Message lastMessage = messageRepository.findMessagesByConversationId(conversationId).getLast();
+
+        List<Message> messages = messageRepository.findMessagesByConversationId(conversationId);
+        String lastMessage;
+        if (messages.isEmpty()) {
+            lastMessage = "";
+        } else {
+            lastMessage = messages.getLast().getContent();
+        }
         return ConversationDTO.builder()
                 .id(conversationId)
                 .name(displayName)
-                .lastMessage(lastMessage.getContent())
+                .lastMessage(lastMessage)
                 .imageFileId(displayImageFileId)
                 .build();
     }
@@ -97,7 +104,6 @@ public class ConversationService {
         if (conversationsOpt.isEmpty()) {
             return Collections.emptyList();
         }
-
         List<Conversation> conversations = conversationsOpt.get();
         List<ConversationDTO> conversationDTOList = new ArrayList<>();
         conversations.forEach(
