@@ -5,6 +5,7 @@ import hr.java.chatapp.model.dto.ConversationDTO;
 import hr.java.chatapp.service.ConversationService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.apache.commons.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
@@ -21,8 +22,6 @@ public class ConversationController {
 
     @Autowired
     private final ConversationService conversationService;
-    @Autowired
-    private GridFsTemplate gridFsTemplate;
 
     @GetMapping("/get/{conversationId}/{currentUserId}")
     public ResponseEntity<Conversation> getConversation(
@@ -43,31 +42,13 @@ public class ConversationController {
         );
     }
 
-    @GetMapping("/getImage")
-    public ResponseEntity<GridFsResource> getConversationImage(
-            @RequestParam String conversationId,
-            @RequestParam String userId
-    ) {
-        Conversation conversation = conversationService
-                .getById(conversationId, userId);
-        String imageId = conversation.getImageFileId();
-
-        GridFsResource resource = gridFsTemplate.getResource(imageId);
-        if (!resource.exists()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(resource.getContentType()))
-                .body(resource);
-    }
-
     @PostMapping("/create_group")
     public ResponseEntity<Conversation> createGroup(
-            @Valid @RequestBody Conversation conversation
+            @RequestBody Conversation conversation
     ) {
-        return ResponseEntity.ok(
-                conversationService.saveNewGroup(conversation)
-        );
+        Conversation newConversation = conversationService.saveNewGroup(conversation);
+        System.out.println(newConversation);
+        return ResponseEntity.ok(newConversation);
     }
 
     @PostMapping("/create_dm")
@@ -81,7 +62,5 @@ public class ConversationController {
     }
 
 
-    // ToDo: Read status here
-
-    // Additional endpoints: get group by ID, update group, etc.
+    // ToDo: Read status
 }

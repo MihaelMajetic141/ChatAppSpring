@@ -2,15 +2,15 @@ package hr.java.chatapp.service;
 
 
 import hr.java.chatapp.model.Conversation;
-import hr.java.chatapp.model.Message;
+import hr.java.chatapp.model.ChatMessage;
 import hr.java.chatapp.model.UserInfo;
 import hr.java.chatapp.model.dto.ConversationDTO;
 import hr.java.chatapp.repository.ConversationRepository;
 import hr.java.chatapp.repository.MessageRepository;
 import hr.java.chatapp.repository.UserInfoRepository;
 import jakarta.validation.constraints.NotNull;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -24,8 +24,6 @@ public class ConversationService {
     private MessageRepository messageRepository;
     @Autowired
     private UserInfoRepository userInfoRepository;
-    @Autowired
-    private GridFsTemplate gridFsTemplate;
 
     public Conversation getById(String conversationId, String currentUserId) {
         Optional<Conversation> conversationOpt = conversationRepository.findById(conversationId);
@@ -44,7 +42,9 @@ public class ConversationService {
                 return null;
             }
             UserInfo otherUser = otherUserOpt.get();
-            // conversation.setImageFileId(otherUser.getImageFileId()); // What if empty?
+            // ToDo: Double check this
+            conversation.setName(otherUser.getUsername());
+            conversation.setImageFileId(otherUser.getImageFileId());
         }
         return conversation;
     }
@@ -59,7 +59,7 @@ public class ConversationService {
         String displayName;
         String displayImageFileId;
         if (conversation.isDirectMessage()) {
-            Set<String> memberIds = conversation.getMemberIds();
+            List<String> memberIds = conversation.getMemberIds();
             if (!memberIds.contains(currentUserId)) {
                 throw new IllegalStateException("Current user ID is not in member list");
             }
@@ -84,12 +84,12 @@ public class ConversationService {
             displayImageFileId = conversation.getImageFileId();
         }
 
-        List<Message> messages = messageRepository.findMessagesByConversationId(conversationId);
+        List<ChatMessage> chatMessages = messageRepository.findMessagesByConversationId(conversationId);
         String lastMessage;
-        if (messages.isEmpty()) {
+        if (chatMessages.isEmpty()) {
             lastMessage = "";
         } else {
-            lastMessage = messages.getLast().getContent();
+            lastMessage = chatMessages.getFirst().getContent();
         }
         return ConversationDTO.builder()
                 .id(conversationId)
@@ -132,6 +132,7 @@ public class ConversationService {
 
     public Conversation saveNewGroup(Conversation conversation) {
         Conversation group = Conversation.builder()
+                .id(ObjectId.get().toString())
                 .name(conversation.getName())
                 .description(conversation.getDescription())
                 .imageFileId(conversation.getImageFileId())
@@ -150,10 +151,11 @@ public class ConversationService {
     ) {
         Optional<Conversation> existingConversation = getDirectConversationByUserIds(senderId, receiverId);
         if (existingConversation.isPresent()) { return existingConversation.get(); }
-        Set<String> memberIds = new HashSet<>();
+        List<String> memberIds = new ArrayList<>();
         memberIds.add(senderId);
         memberIds.add(receiverId);
         Conversation newConversation = Conversation.builder()
+                .id(ObjectId.get().toString())
                 .isDirectMessage(true)
                 .memberIds(memberIds)
                 .createdAt(Date.from(Instant.now()))

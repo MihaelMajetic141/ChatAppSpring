@@ -14,7 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
-@RestController("/api/media")
+@RestController
+@RequestMapping("/api/media")
 @AllArgsConstructor
 public class MediaController {
 
@@ -24,19 +25,15 @@ public class MediaController {
     public ResponseEntity<?> uploadMedia(
             @RequestParam("file") MultipartFile file
     ) {
-        // ToDo: Get from parsed jwt claim.
         String ownerId = "ownerId";
-
         try {
             MediaMetadata metadata = mediaService.uploadMedia(file, ownerId);
-
-            // ToDo: Create a class
             return ResponseEntity.ok(
-                    Map.ofEntries(
-                            Map.entry("imageId", metadata.id().toHexString()),
-                            Map.entry("originalName", metadata.originalName()),
-                            Map.entry("size", metadata.size())
-                    )
+                    MediaMetadata.builder()
+                            .id(metadata.id())
+                            .originalName(metadata.originalName())
+                            .size(metadata.size())
+                            .build()
             );
 
         } catch (IOException e) {
@@ -49,10 +46,15 @@ public class MediaController {
     @GetMapping("/download/{fileId}")
     public ResponseEntity<?> downloadMedia(
             @PathVariable String fileId
+//            @RequestParam String userId,
+//            @RequestParam (required = false) String conversationId
     ) {
+//        if (!conversationId.contains(userId))
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         try {
-            MediaMetadata metadata = mediaService.getImageMetadata(fileId);
-            Resource resource = mediaService.getImageResource(fileId);
+            MediaMetadata metadata = mediaService.getMediaMetadata(fileId);
+            Resource resource = mediaService.getMediaResource(fileId);
 
             return ResponseEntity
                     .ok()

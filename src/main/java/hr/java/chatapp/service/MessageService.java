@@ -1,6 +1,6 @@
 package hr.java.chatapp.service;
 
-import hr.java.chatapp.model.Message;
+import hr.java.chatapp.model.ChatMessage;
 import hr.java.chatapp.repository.MessageRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,34 +20,36 @@ public class MessageService {
     private final GridFsTemplate gridFsTemplate;
 
     // ToDo: Maybe create class MessageContent for different types of messages.
-    public Message saveMessage(
+    public ChatMessage saveMessage(
             String senderId,
+            String username,
             String conversationId,
             String content,
             String replyTo
     ) {
-        Message message = Message.builder()
+        ChatMessage chatMessage = ChatMessage.builder()
                 .senderId(senderId)
+                .username(username)
                 .conversationId(conversationId)
                 .content(content)
                 .replyTo(replyTo)
                 .timestamp(Date.from(Instant.now()))
                 .reactions(new HashMap<>())
                 .build();
-        return messageRepository.save(message);
+        return messageRepository.save(chatMessage);
     }
 
-    public List<Message> getAllMessages(String conversationId) {
+    public List<ChatMessage> getAllMessages(String conversationId) {
         return messageRepository.findMessagesByConversationId(conversationId);
     }
 
     public void addReaction(String messageId, String emoji) {
-        Message message = messageRepository.findById(messageId).orElseThrow();
-        message.getReactions().merge(emoji, 1, Integer::sum);
-        messageRepository.save(message);
+        ChatMessage chatMessage = messageRepository.findById(messageId).orElseThrow();
+        chatMessage.getReactions().merge(emoji, 1, Integer::sum);
+        messageRepository.save(chatMessage);
     }
 
-    public Message sendMediaMessage(
+    public ChatMessage sendMediaMessage(
             String senderId,
             String receiverId,
             String content,
@@ -58,7 +60,7 @@ public class MessageService {
             throw new IllegalArgumentException("Message must have content or media");
         }
 
-        Message message = Message.builder()
+        ChatMessage chatMessage = ChatMessage.builder()
                 .senderId(senderId)
                 .conversationId(receiverId)
                 .content(content)
@@ -70,11 +72,11 @@ public class MessageService {
             String fileId = gridFsTemplate.store(
                     media.getInputStream(), media.getOriginalFilename(), mediaType
             ).toString();
-            message.setMediaFileId(fileId);
-            message.setMediaType(mediaType);
+            chatMessage.setMediaFileId(fileId);
+            chatMessage.setMediaType(mediaType);
         }
 
-        return messageRepository.save(message);
+        return messageRepository.save(chatMessage);
     }
 
 }

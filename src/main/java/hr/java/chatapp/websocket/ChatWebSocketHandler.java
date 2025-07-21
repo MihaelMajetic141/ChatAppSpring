@@ -1,7 +1,7 @@
-package hr.java.chatapp.config;
+package hr.java.chatapp.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hr.java.chatapp.model.Message;
+import hr.java.chatapp.model.ChatMessage;
 import hr.java.chatapp.service.MessageService;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -29,16 +29,17 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         String payload = message.getPayload().toString();
         System.out.println("Received message payload: " + payload);
-        Message incomingMessage = objectMapper.readValue(payload, Message.class);
+        ChatMessage incomingChatMessage = objectMapper.readValue(payload, ChatMessage.class);
 
-        Message savedMessage = messageService.saveMessage(
-                incomingMessage.getSenderId(),
-                incomingMessage.getConversationId(),
-                incomingMessage.getContent(),
-                incomingMessage.getReplyTo()
+        ChatMessage savedChatMessage = messageService.saveMessage(
+                incomingChatMessage.getSenderId(),
+                incomingChatMessage.getUsername(),
+                incomingChatMessage.getConversationId(),
+                incomingChatMessage.getContent(),
+                incomingChatMessage.getReplyTo()
         );
 
-        String responseJson = objectMapper.writeValueAsString(savedMessage);
+        String responseJson = objectMapper.writeValueAsString(savedChatMessage);
         session.sendMessage(new TextMessage(responseJson));
     }
 

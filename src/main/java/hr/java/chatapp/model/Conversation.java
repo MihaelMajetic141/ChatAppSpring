@@ -1,8 +1,8 @@
 package hr.java.chatapp.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.google.gson.annotations.SerializedName;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,10 +23,9 @@ public class Conversation {
     @Id
     private String id;
 
-    @NotBlank
     private String name;
 
-    private String description = "";
+    private String description;
 
     @Field("image_file_id")
     private String imageFileId;
@@ -35,14 +34,16 @@ public class Conversation {
     private boolean isDirectMessage;
 
     @Field("invite_link")
-    private String inviteLink = "";
+    @Indexed(name = "invite_link_unique", unique = true)
+    private String inviteLink;
 
     @Field("admin_ids")
-    private Set<String> adminIds = new HashSet<>();
+    private List<String> adminIds = new ArrayList<>();
 
     @Field("member_ids")
-    @NotEmpty
-    private Set<String> memberIds = new HashSet<>();
+    private List<String> memberIds = new ArrayList<>();
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
+    @Field("created_at")
     private Date createdAt;
 }

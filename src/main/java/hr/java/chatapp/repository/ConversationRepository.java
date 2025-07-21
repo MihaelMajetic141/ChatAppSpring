@@ -18,5 +18,4 @@ public interface ConversationRepository extends MongoRepository<Conversation, St
     Optional<Conversation> findDirectMessageConversation(String userId1, String userId2);
 
     Optional<Conversation> findConversationByIdAndDirectMessageFalse(String conversationId);
-
 }

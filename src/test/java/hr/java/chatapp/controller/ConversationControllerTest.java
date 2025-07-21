@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.hasItem;
@@ -48,7 +49,7 @@ class ConversationControllerTest {
         String description = "This is a test group";
         String imageFileId = "image123";
         String creatorId = "user1";
-        Set<String> memberIds = Set.of("user1", "user2", "user3");
+        List<String> memberIds = List.of("user1", "user2", "user3");
 
         Conversation mockConversation = Conversation.builder()
                 .id("conv1")
@@ -56,7 +57,7 @@ class ConversationControllerTest {
                 .description(description)
                 .imageFileId(imageFileId)
                 .isDirectMessage(false)
-                .adminIds(Set.of(creatorId))
+                .adminIds(List.of(creatorId))
                 .memberIds(memberIds)
                 .inviteLink("uniqueLink123")
                 .build();
@@ -124,9 +125,9 @@ class ConversationControllerTest {
         String user2 = "userB";
 
         Conversation mockConversation = Conversation.builder()
-                .id("dm1")
+                .id("id1")
                 .isDirectMessage(true)
-                .memberIds(Set.of(user1, user2))
+                .memberIds(List.of(user1, user2))
                 .build();
 
         when(conversationService.saveNewDirectConversation(user1, user2))

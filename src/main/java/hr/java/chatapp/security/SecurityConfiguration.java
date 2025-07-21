@@ -37,7 +37,6 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth ->
                 auth.requestMatchers("/api/test/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/chat/**").authenticated()
                     .anyRequest().authenticated())
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

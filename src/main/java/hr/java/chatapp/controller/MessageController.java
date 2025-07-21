@@ -1,6 +1,6 @@
 package hr.java.chatapp.controller;
 
-import hr.java.chatapp.model.Message;
+import hr.java.chatapp.model.ChatMessage;
 import hr.java.chatapp.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
@@ -19,28 +19,13 @@ public class MessageController {
 
     @Autowired
     private MessageService messageService;
-    @Autowired
-    private GridFsTemplate gridFsTemplate;
 
     @GetMapping("/get")
-    public ResponseEntity<List<Message>> getMessagesByConversationId(
+    public ResponseEntity<List<ChatMessage>> getMessagesByConversationId(
             @RequestParam String conversationId
     ) {
-        List<Message> messages = messageService.getAllMessages(conversationId);
-        return ResponseEntity.status(HttpStatus.OK).body(messages);
-    }
-
-    @GetMapping("/media/{fileId}")
-    public ResponseEntity<GridFsResource> getMedia(@PathVariable String fileId) {
-        //ToDo: Secure this by checking if currentUser is in conversation where media is located.
-
-        GridFsResource resource = gridFsTemplate.getResource(fileId);
-        if (!resource.exists()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(resource.getContentType()))
-                .body(resource);
+        List<ChatMessage> chatMessages = messageService.getAllMessages(conversationId);
+        return ResponseEntity.status(HttpStatus.OK).body(chatMessages);
     }
 
 //    @PostMapping("/new_message")
